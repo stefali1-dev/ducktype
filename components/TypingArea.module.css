@@ -1,0 +1,126 @@
+.view {
+  position: relative;
+  max-height: calc(12 * 1.7em);
+  overflow: hidden;
+  font: 18px/1.7 var(--font-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
+  cursor: text;
+  animation: fade-in 150ms var(--ease);
+}
+
+.view[data-more="true"] {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 3em), transparent);
+}
+
+.input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.layer {
+  position: relative;
+  transition: transform 120ms var(--ease);
+}
+
+.chars {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--pending);
+  transition: opacity 150ms var(--ease);
+}
+
+.correct {
+  color: var(--text);
+}
+
+.wrong {
+  color: var(--error);
+}
+
+.space.wrong {
+  background: var(--error-bg);
+  border-radius: 2px;
+}
+
+/* a key other than Enter at a line end: show which key it wants */
+.newline.wrong::before {
+  content: "enter";
+  margin-left: 6px;
+  padding: 1px 5px;
+  font: 11px var(--ui);
+  vertical-align: 2px;
+  color: var(--error);
+  background: var(--error-bg);
+  border: 1px solid var(--error);
+  border-radius: 4px;
+}
+
+.caret {
+  position: absolute;
+  top: 0;
+  left: -1px;
+  width: 2px;
+  height: 1.32em;
+  border-radius: 1px;
+  background: var(--accent);
+  will-change: transform;
+  transition: opacity 150ms var(--ease);
+}
+
+:global([data-phase="idle"]) .caret {
+  animation: blink 1s ease-in-out infinite;
+}
+
+:global([data-phase="done"]) .caret {
+  opacity: 0;
+}
+
+.blurred {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 14px var(--ui);
+  color: var(--muted);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms var(--ease);
+}
+
+.view:has(.input:not(:focus)) .chars {
+  opacity: 0.35;
+  filter: blur(4px);
+}
+
+.view:has(.input:not(:focus)) .caret {
+  opacity: 0;
+}
+
+.view:has(.input:not(:focus)) .blurred {
+  opacity: 1;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .view {
+    font-size: 14px;
+  }
+}

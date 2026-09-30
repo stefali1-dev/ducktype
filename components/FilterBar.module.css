@@ -1,0 +1,23 @@
+.segmented {
+  font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 2px;
+  gap: 2px;
+  background: var(--track);
+  border-radius: 8px;
+}
+
+.segmented button {
+  border-color: transparent;
+  background: none;
+  border-radius: 6px;
+  padding: 2px 9px;
+  color: var(--muted);
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--raised);
+  border-color: var(--hairline);
+  color: var(--text);
+}

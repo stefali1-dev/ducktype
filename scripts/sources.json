@@ -1,0 +1,42 @@
+[
+  {
+    "id": "fastapi-docs",
+    "repo": "fastapi/fastapi",
+    "sha": "78c4324f0c56bc5282a459978779a9e532d19709",
+    "license": "MIT",
+    "paths": ["docs_src"],
+    "skip": []
+  },
+  {
+    "id": "fastapi-template",
+    "repo": "fastapi/full-stack-fastapi-template",
+    "sha": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "license": "MIT",
+    "paths": ["backend/app"],
+    "skip": ["alembic", "tests"]
+  },
+  {
+    "id": "polar",
+    "repo": "polarsource/polar",
+    "sha": "5771e9b658501b4bdb767c7d02c00ff336b47738",
+    "license": "Apache-2.0",
+    "paths": ["server/polar"],
+    "skip": ["migrations", "tests"]
+  },
+  {
+    "id": "fastapi",
+    "repo": "fastapi/fastapi",
+    "sha": "78c4324f0c56bc5282a459978779a9e532d19709",
+    "license": "MIT",
+    "paths": ["fastapi"],
+    "skip": []
+  },
+  {
+    "id": "pydantic",
+    "repo": "pydantic/pydantic",
+    "sha": "26f7b8a1ad02951962c4073297fa9a2b1ce8d30c",
+    "license": "MIT",
+    "paths": ["pydantic"],
+    "skip": ["v1"]
+  }
+]

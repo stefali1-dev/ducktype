@@ -1,0 +1,55 @@
+.page {
+  width: min(100% - 32px, 640px);
+  margin: 0 auto;
+  padding: 48px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--muted);
+}
+
+.page h1 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.page a {
+  color: var(--text);
+}
+
+.page a:hover {
+  color: var(--accent);
+}
+
+.back {
+  font-size: 13px;
+}
+
+.list {
+  list-style: none;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 12px 14px;
+}
+
+.list li + li {
+  border-top: 1px solid var(--hairline);
+}
+
+.id {
+  margin-left: 8px;
+  font-size: 12px;
+}
+
+.meta {
+  font: 12px var(--font-mono), monospace;
+}
