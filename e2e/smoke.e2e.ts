@@ -61,21 +61,31 @@ test("keys: Tab restarts, Enter and Esc go next", async ({ page }) => {
   expect(await code(page)).not.toBe(second);
 });
 
-test("Enter resyncs: mid-line skips to the next line, other keys wait at a newline", async ({ page }) => {
+test("Enter mid-line stays put, other keys wait at a newline", async ({ page }) => {
   const text = await code(page);
   const firstLine = text.split("\n")[0];
   await page.keyboard.type(text[0]);
   await page.keyboard.press("Enter");
-  await expect(page.locator("[class*=chars] [class*=wrong]")).toHaveCount(firstLine.length);
-
-  await page.keyboard.press("Tab");
-  await typeCode(page, firstLine);
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[class*=chars] [class*=wrong]")).toHaveCount(1);
+  await typeCode(page, firstLine.slice(1));
   await page.keyboard.type("xyz");
   await expect(page.locator("[class*=chars] [class*=wrong]")).toHaveCount(1);
   await page.keyboard.press("Enter");
   await expect(page.locator("[class*=chars] [class*=wrong]")).toHaveCount(0);
   await typeCode(page, text.slice(firstLine.length + 1).trimStart());
   expect(await phase(page)).toBe("done");
+});
+
+test("Ctrl+Backspace deletes a word", async ({ page }) => {
+  const firstLine = (await code(page)).split("\n")[0];
+  const typed = page.locator("[class*=chars] [class*=correct]");
+  await typeCode(page, firstLine);
+  await page.keyboard.press("Control+Backspace");
+  const left = firstLine.replace(/(\w+|[^\w\s]+)\s*$/, "");
+  await expect(typed).toHaveCount(left.length);
+  await page.keyboard.press("Alt+Backspace");
+  await expect(typed).toHaveCount(left.replace(/(\w+|[^\w\s]+)\s*$/, "").length);
 });
 
 test("tabs narrow the pool, keep focus and persist", async ({ page }) => {

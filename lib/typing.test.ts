@@ -96,24 +96,50 @@ describe("typing engine", () => {
     expect(s.status.slice(0, 3)).toEqual(["correct", "correct", "pending"]);
   });
 
-  it("Enter mid-line skips the rest of the line as one error and resyncs", () => {
+  it("Enter mid-line counts an error, marks the char and stays put", () => {
     const s = createState("abcd\n    ef");
-    typeAll(s, "a\n");
-    expect(s.code[s.pos]).toBe("e");
-    expect(s.status.slice(1, 5)).toEqual(["wrong", "wrong", "wrong", "wrong"]);
-    expect(s.errors).toBe(1);
-    typeAll(s, "ef", 1000);
+    typeAll(s, "a\n\n\n");
+    expect(s.pos).toBe(1);
+    expect(s.status.slice(0, 3)).toEqual(["correct", "wrong", "pending"]);
+    expect(s.errors).toBe(3);
+    typeAll(s, "bcd\nef", 1000);
     expect(isDone(s)).toBe(true);
+    expect(s.status[1]).toBe("correct");
   });
 
-  it("backspace walks back through a skipped line", () => {
-    const s = createState("abcd\n    ef");
-    typeAll(s, "a\n");
-    backspace(s);
-    expect(s.pos).toBe(4);
-    backspace(s);
+  it("word delete takes spaces, then a run of word chars or of punctuation", () => {
+    const s = createState("x = self.name  ;");
+    typeAll(s, "x = self.name  ");
+    const left = () => s.code.slice(0, s.pos);
+    backspace(s, "word");
+    expect(left()).toBe("x = self.");
+    backspace(s, "word");
+    expect(left()).toBe("x = self");
+    backspace(s, "word");
+    expect(left()).toBe("x = ");
+    backspace(s, "word");
+    expect(left()).toBe("x ");
+    expect(s.status.slice(s.pos)).toEqual(Array(14).fill("pending"));
+  });
+
+  it("word and line delete stop at the line start, then act like Backspace", () => {
+    const s = createState("ab\n    cd ef\n");
+    typeAll(s, "ab\ncd ef");
+    backspace(s, "line");
+    expect(s.code[s.pos]).toBe("c");
+    backspace(s, "word");
+    expect(s.pos).toBe(2);
+    backspace(s, "word");
+    expect(s.pos).toBe(0);
+  });
+
+  it("word delete also clears a red char waiting for its key", () => {
+    const s = createState("ab cd\n");
+    typeAll(s, "ab cd\n".slice(0, 4) + "\n");
+    expect(s.status[4]).toBe("wrong");
+    backspace(s, "word");
     expect(s.pos).toBe(3);
-    expect(s.status.slice(1)).toEqual(["wrong", "wrong", ...Array(8).fill("pending")]);
+    expect(s.status[4]).toBe("pending");
   });
 
   it("Enter on the last line counts an error without moving", () => {

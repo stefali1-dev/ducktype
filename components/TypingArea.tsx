@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { backspace, createState, isDone, typeKey, type Status, type TypingState } from "@/lib/typing";
+import { backspace, createState, isDone, typeKey, type Status, type TypingState, type Unit } from "@/lib/typing";
 import styles from "./TypingArea.module.css";
 
 const STATUS: Record<Status, string> = { pending: "", correct: styles.correct, wrong: styles.wrong };
@@ -45,7 +45,6 @@ export default function TypingArea({ code, onStart, onDone }: Props) {
 
     // The caret rides a spring toward its target. Unlike a CSS transition, a new target
     // mid-glide keeps the current velocity instead of restarting the curve, so fast typing stays fluid.
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const c = { tx: 0, ty: 0, dx: 0, dy: 0, vx: 0, vy: 0, t: 0, frame: 0 };
     const draw = () => (caret.style.transform = `translate(${c.tx + c.dx}px, ${c.ty + c.dy}px)`);
     const glide = (now: number) => {
@@ -62,7 +61,7 @@ export default function TypingArea({ code, onStart, onDone }: Props) {
     const moveCaret = (animate: boolean) => {
       const lineHeight = parseFloat(getComputedStyle(layer).lineHeight);
       const at = spans[Math.min(s.pos, spans.length - 1)];
-      if (animate && !reduced) {
+      if (animate) {
         c.dx += c.tx - at.offsetLeft;
         c.dy += c.ty - at.offsetTop;
         if (!c.frame) {
@@ -85,9 +84,9 @@ export default function TypingArea({ code, onStart, onDone }: Props) {
       if (view.dataset.more !== more) view.dataset.more = more;
     };
 
-    const handle = (key: string | null) => {
+    const handle = (key: string | null, unit?: Unit) => {
       const before = s.pos;
-      if (key === null) backspace(s);
+      if (key === null) backspace(s, unit);
       else typeKey(s, key, performance.now());
       // inclusive: a key that doesn't advance still marks the current char
       const last = Math.min(Math.max(before, s.pos), code.length - 1);
@@ -100,8 +99,9 @@ export default function TypingArea({ code, onStart, onDone }: Props) {
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (isDone(s) || e.ctrlKey || e.metaKey || e.altKey) return;
-      if (e.key === "Backspace") handle(null);
+      if (isDone(s)) return;
+      if (e.key === "Backspace") handle(null, e.metaKey ? "line" : e.ctrlKey || e.altKey ? "word" : "char");
+      else if (e.ctrlKey || e.metaKey || e.altKey) return;
       else if (e.key === "Enter") handle("\n");
       else return;
       e.preventDefault();

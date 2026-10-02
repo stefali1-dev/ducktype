@@ -37,8 +37,8 @@ export function isDone(s: TypingState): boolean {
 }
 
 /**
- * Types one key ("\n" for Enter). A wrong key still advances, except that lines resync on Enter:
- * Enter mid-line skips the rest of the line, and other keys never pass a newline.
+ * Types one key ("\n" for Enter). A wrong key still advances, except that Enter and newlines
+ * only meet each other: Enter mid-line and other keys at a newline stay put, so a slip stays on its line.
  */
 export function typeKey(s: TypingState, key: string, now: number): void {
   if (isDone(s)) return;
@@ -49,29 +49,43 @@ export function typeKey(s: TypingState, key: string, now: number): void {
     s.status[s.pos++] = "correct";
   } else {
     s.errors++;
-    const lineEnd = s.code.indexOf("\n", s.pos);
-    if (expected === "\n" || (key === "\n" && lineEnd === -1)) {
-      // stay put: the newline shows as wrong until Enter; the last line has nothing to skip to
+    if (expected === "\n" || key === "\n") {
+      // stay put: the char shows as wrong until its own key
       s.status[s.pos] = "wrong";
       return;
     }
-    const to = key === "\n" ? lineEnd + 1 : s.pos + 1;
-    while (s.pos < to) s.status[s.pos++] = "wrong";
+    s.status[s.pos++] = "wrong";
   }
   while (s.auto[s.pos]) s.status[s.pos++] = "correct";
   if (isDone(s)) s.endedAt = now;
 }
 
-export function backspace(s: TypingState): void {
+export type Unit = "char" | "word" | "line";
+
+/** Backspace; "word" is Ctrl/Option+Backspace and "line" is Cmd+Backspace, as in a code editor. */
+export function backspace(s: TypingState, unit: Unit = "char"): void {
   if (isDone(s)) return;
-  // a red newline waiting for Enter: just clear it
+  // a red char waiting for its key: a plain backspace just clears it
   if (s.status[s.pos] === "wrong") {
     s.status[s.pos] = "pending";
-    return;
+    if (unit === "char") return;
   }
-  if (s.pos === 0) return;
-  do s.status[--s.pos] = "pending";
-  while (s.auto[s.pos]);
+  const inLine = (i: number) => i >= 0 && !s.auto[i] && s.code[i] !== "\n";
+  let to = s.pos;
+  if (unit === "char" || !inLine(to - 1)) {
+    // one char; at a line start that's the newline, with the indent after it
+    if (to === 0) return;
+    do to--;
+    while (s.auto[to]);
+  } else if (unit === "line") {
+    while (inLine(to - 1)) to--;
+  } else {
+    // spaces, then one run of word chars or one run of punctuation
+    while (inLine(to - 1) && s.code[to - 1] === " ") to--;
+    const word = /\w/.test(s.code[to - 1]);
+    while (inLine(to - 1) && s.code[to - 1] !== " " && /\w/.test(s.code[to - 1]) === word) to--;
+  }
+  while (s.pos > to) s.status[--s.pos] = "pending";
 }
 
 export type Stats = { wpm: number; accuracy: number; seconds: number };
