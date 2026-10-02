@@ -88,6 +88,16 @@ test("Ctrl+Backspace deletes a word", async ({ page }) => {
   await expect(typed).toHaveCount(left.replace(/(\w+|[^\w\s]+)\s*$/, "").length);
 });
 
+test("a nudge of the pointer while typing keeps the bars hidden, a real move shows them", async ({ page }) => {
+  const top = page.locator("header");
+  await page.mouse.move(400, 400);
+  await page.keyboard.type((await code(page))[0]);
+  await page.mouse.move(402, 401);
+  await expect(top).toHaveCSS("opacity", "0");
+  await page.mouse.move(500, 400);
+  await expect(top).toHaveCSS("opacity", "1");
+});
+
 test("tabs narrow the pool, keep focus and persist", async ({ page }) => {
   await page.getByRole("button", { name: "routes" }).click();
   expect((await code(page)).startsWith("@")).toBe(true);

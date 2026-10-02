@@ -77,8 +77,11 @@ export default function Trainer() {
 
   useEffect(() => {
     const root = rootRef.current!;
+    // pointer travel since the last key: a thumb brushing the trackpad on space moves a few px
+    let moved = 0;
     const onKey = (e: KeyboardEvent) => {
       delete root.dataset.mouse;
+      moved = 0;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.key === "Tab") restart();
       else if (e.key === "Escape") next();
@@ -87,7 +90,10 @@ export default function Trainer() {
       // the new exercise mounts before this key's input event, which would type into it
       e.preventDefault();
     };
-    const onMouse = () => (root.dataset.mouse = "");
+    const onMouse = (e: MouseEvent) => {
+      moved += Math.abs(e.movementX) + Math.abs(e.movementY);
+      if (moved > 10) root.dataset.mouse = "";
+    };
     window.addEventListener("keydown", onKey);
     window.addEventListener("mousemove", onMouse);
     return () => {
